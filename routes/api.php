@@ -24,3 +24,5 @@ Route::post('import', [ApiController::class, 'import'])->name('import');
 Route::post('update_station_price', [ApiController::class, 'update_station_price'])->name('update_station_price');
 Route::get('getStationById', [ApiController::class, 'getStationById'])->name('getStationById');
 Route::get('getPriceById', [ApiController::class, 'getPriceById'])->name('getPriceById');
+Route::post('addRemoveFavoriteStation', [ApiController::class, 'addRemoveFavoriteStation']);
+Route::get('getMyFavoriteStation', [ApiController::class, 'getMyFavoriteStation']);

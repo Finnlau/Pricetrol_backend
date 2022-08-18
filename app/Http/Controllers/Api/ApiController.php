@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Http\Resources\FavoritePetrolStationListResource;
 use App\Http\Resources\PetrolStationListResource;
 use App\Models\PetrolStation;
 use App\Imports\PetrolStationImport;
+use App\Models\FavoriteStation;
 use App\Models\PetrolStationsPrice;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
@@ -61,7 +63,7 @@ class ApiController extends BaseController
                 ->having('distance', '<', 50)
                 ->orderBy('distance');
             if ($stations->count() > 0) {
-                $stations=$stations->get();
+                $stations = $stations->get();
                 return $this->sendResponse(PetrolStationListResource::collection($stations), 'Data get successfully.');
             } else {
                 return $this->sendResponse([], 'No data found.');
@@ -134,6 +136,58 @@ class ApiController extends BaseController
             }
             $data['price'] = PetrolStationsPrice::where('p_station_id', $request->id)->first()->price;
             return $this->sendResponse($data, 'Data get successfully.');
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), 500);
+        }
+    }
+
+    public function addRemoveFavoriteStation(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'user_id' => 'required',
+                'p_station_id' => 'required',
+                'is_favorite' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return $this->sendError($validator->errors()->first(), 422);
+            }
+            $check = PetrolStation::where('id', $request->p_station_id)->first();
+            if (empty($check)) {
+                return $this->sendError("Petrol station not found", 401);
+            }
+            if ($request->is_favorite == 1) {
+                $favorite = new FavoriteStation();
+                $favorite->user_id = $request->user_id;
+                $favorite->p_station_id = $request->p_station_id;
+                $favorite->save();
+                return $this->sendResponse($favorite, 'Petrol station marked as favorite.');
+            }
+            if ($request->is_favorite == 0) {
+                $favorite = FavoriteStation::where('user_id', $request->user_id)->where('p_station_id', $request->p_station_id)->first();
+                $favorite->delete();
+                return $this->sendResponse($favorite, 'Petrol station marked as unfavorite.');
+            }
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), 500);
+        }
+    }
+    public function getMyFavoriteStation(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'user_id' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return $this->sendError($validator->errors()->first(), 422);
+            }
+            $favorite = FavoriteStation::where('user_id', $request->user_id);
+            if ($favorite->count() > 0) {
+                $favorite = $favorite->get();
+                return $this->sendResponse(FavoritePetrolStationListResource::collection($favorite), 'Data get successfully.');
+            } else {
+                return $this->sendResponse([], 'No data found.');
+            }
         } catch (\Exception $e) {
             return $this->sendError($e->getMessage(), 500);
         }

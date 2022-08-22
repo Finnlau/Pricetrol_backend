@@ -31,7 +31,7 @@ class PetrolStationListResource extends JsonResource
             'd_price' => PetrolStationsPrice::where('p_station_id', $this->id)->first()->d_price ?? "",
             'latitude' => $this->latitude  ?? "",
             'longitude' => $this->longitude  ?? "",
-            'distance' => round($this->distance)."km",
+            // 'distance' => round($this->distance)."km",
             'favorite_count' => FavoriteStation::where('p_station_id', $this->id)->count()
         ];
     }

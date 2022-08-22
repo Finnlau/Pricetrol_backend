@@ -58,12 +58,19 @@ class ApiController extends BaseController
             }
             $latitude       =       $request->latitude;
             $longitude      =       $request->longitude;
-            $q = DB::table('petrol_stations');
-            $stations = $q->selectRaw('*, ( 6367 * acos( cos( radians( ' . $latitude . ' ) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians( ' . $longitude . ' ) ) + sin( radians( ' . $latitude . ' ) ) * sin( radians( latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
-                ->having('distance', '<', 50)
-                ->orderBy('distance');
-            if ($stations->count() > 0) {
-                $stations = $stations->get();
+            $data = DB::table('petrol_stations');
+            $db               = DB::raw("6371 * acos(cos(radians(" . $latitude . "))
+                    * cos(radians(latitude)) * cos(radians(longitude) - radians(" . $longitude . "))
+                    + sin(radians(" . $latitude . ")) * sin(radians(latitude))) AS distance");
+            $stations          =       $data->select("*",  $db);
+            $stations          =       $stations->having('distance', '<', 50);
+            $data       =       $stations;
+            if (!empty($request->searchKeyword)) {
+                $data->where('name', 'LIKE', "%{$request->searchKeyword}%") 
+                ->orWhere('description', 'LIKE', "%{$request->searchKeyword}%");
+            }
+            if ($data->count() > 0) {
+                $stations = $data->get();
                 return $this->sendResponse(PetrolStationListResource::collection($stations), 'Data get successfully.');
             } else {
                 return $this->sendResponse([], 'No data found.');

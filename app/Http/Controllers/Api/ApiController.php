@@ -52,6 +52,7 @@ class ApiController extends BaseController
             $validator = Validator::make($request->all(), [
                 'latitude' => 'required',
                 'longitude' => 'required',
+                'user_id' => 'required',
             ]);
             if ($validator->fails()) {
                 return $this->sendError($validator->errors()->first(), 200);
@@ -164,6 +165,10 @@ class ApiController extends BaseController
                 return $this->sendError("Petrol station not found", 401);
             }
             if ($request->is_favorite == 1) {
+                $check = FavoriteStation::where('user_id', $request->user_id)->where('p_station_id', $request->p_station_id)->first();
+                if(!empty($check)){
+                    return $this->sendError("Already marked as favorite", 401);
+                }
                 $favorite = new FavoriteStation();
                 $favorite->user_id = $request->user_id;
                 $favorite->p_station_id = $request->p_station_id;

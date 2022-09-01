@@ -10,6 +10,6 @@ class FavoriteStation extends Model
     use HasFactory;
     public function petrolStation()
   {
-    return $this->hasOne('App\Models\PetrolStation', 'id', 'user_id');
+    return $this->hasOne('App\Models\PetrolStation', 'id', 'p_station_id');
   }
 }

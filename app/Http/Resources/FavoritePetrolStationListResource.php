@@ -32,7 +32,8 @@ class FavoritePetrolStationListResource extends JsonResource
             'latitude' => $this->petrolStation->latitude  ?? "",
             'longitude' => $this->petrolStation->longitude  ?? "",
             'distance' => round($this->petrolStation->distance)."km",
-            'favorite_count' => FavoriteStation::where('p_station_id', $this->p_station_id)->count()
+            'favorite_count' => FavoriteStation::where('p_station_id', $this->p_station_id)->count(),
+            'is_favorite' => FavoriteStation::where('p_station_id', $this->p_station_id)->where('user_id', $request->user_id)->count() == 1 ? 1 : 0
         ];
     }
 }

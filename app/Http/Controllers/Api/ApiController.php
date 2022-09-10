@@ -64,7 +64,7 @@ class ApiController extends BaseController
                     * cos(radians(latitude)) * cos(radians(longitude) - radians(" . $longitude . "))
                     + sin(radians(" . $latitude . ")) * sin(radians(latitude))) AS distance");
             $stations          =       $data->select("*",  $db);
-            $stations          =       $stations->having('distance', '<', 50);
+            $stations          =       $stations->having('distance', '<', 50)->orderBy('name');
             $data       =       $stations;
             if (!empty($request->searchKeyword)) {
                 $data->where('name', 'LIKE', "%{$request->searchKeyword}%") 
@@ -195,7 +195,9 @@ class ApiController extends BaseController
             }
             $favorite = FavoriteStation::where('user_id', $request->user_id);
             if ($favorite->count() > 0) {
-                $favorite = $favorite->get();
+                $favorite = $favorite->get()->sortBy(function($query){
+                    return $query->petrolStation->name;
+                 });
                 return $this->sendResponse(FavoritePetrolStationListResource::collection($favorite), 'Data get successfully.');
             } else {
                 return $this->sendResponse([], 'No data found.');
